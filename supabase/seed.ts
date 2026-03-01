@@ -19,11 +19,11 @@ if (!supabaseUrl || !supabaseKey) {
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 // 2. Load JSON files
-const campaignsPath = path.join(process.cwd(), "istekler", "campaigns.json");
-const creatorsPath = path.join(process.cwd(), "istekler", "creators.json");
+const campaignsPath = path.join(process.cwd(), "dataset", "campaigns.json");
+const creatorsPath = path.join(process.cwd(), "dataset", "creators.json");
 
 if (!fs.existsSync(campaignsPath) || !fs.existsSync(creatorsPath)) {
-    console.error("Missing campaigns.json or creators.json in istekler/ folder.");
+    console.error("Missing campaigns.json or creators.json in dataset/ folder.");
     process.exit(1);
 }
 
