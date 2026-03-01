@@ -93,7 +93,7 @@ export default function DashboardPage() {
                     <p className="text-sm font-semibold">@{c.username}</p>
                     <p className="text-xs text-[var(--text-dim)]">{c.country} · {c.followers.toLocaleString()} followers</p>
                   </div>
-                  <span className="badge badge-ok">{c.engagement_rate}% ER</span>
+                  <span className="badge badge-ok">{c.engagement_rate.toFixed(1)}% ER</span>
                 </div>
               ))
             )}
