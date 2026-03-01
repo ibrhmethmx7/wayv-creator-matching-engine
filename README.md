@@ -67,7 +67,7 @@ OPENAI_API_KEY=YOUR_OPENAI_KEY
 
 ### Installation & Initialization
 1. `npm install`
-2. Run SQL located inside `supabase/migrations/003_assessment_schema.sql` against your Supabase SQL editor.
+2. Run SQL located inside `supabase/migrations/001_initial_schema.sql` against your Supabase SQL editor.
 3. Seed the local Database with the provided `.json` data using the CLI script:
    `npm run seed`
 4. Test the backend scoring engine locally by running the custom verification script:
