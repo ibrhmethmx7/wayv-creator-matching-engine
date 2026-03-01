@@ -93,7 +93,7 @@ export default function BriefPage() {
       <div>
         <h1 className="text-3xl font-black tracking-tight">AI Brief Generator</h1>
         <p className="mt-2 text-sm text-[var(--text-dim)]">
-          Generate strict personalized briefs (Outreach, 5 Ideas, 3 Hooks) via gpt-4o-mini + Schema Validation.
+          Generate personalized briefs (Outreach, 5 Ideas, 3 Hooks).
         </p>
       </div>
 
