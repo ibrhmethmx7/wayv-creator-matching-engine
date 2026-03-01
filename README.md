@@ -6,19 +6,43 @@ This project uses a Next.js (App Router) + tRPC frontend and a Supabase (Postgre
 
 ---
 
-## 🏗 Trade-offs & Development Notes
+## 🏗 Architecture & Separation of Concerns
 
-### Hybrid Columnar + JSONB Approach
-For the database schema, I chose a pragmatic **hybrid approach** to store Creators and Campaigns rather than heavily normalizing every field:
-- **Trade-off:** By keeping queryable fields (e.g., `followers`, `engagement_rate`, `country`) as standard Postgres columns, we get fast database filtering. Deeply nested data (`audience distribution`, `last_posts`, `niches`) are kept as `JSONB`. This trades strict normalization for massive flexibility and read performance.
-
-### AI Brief Caching & Cost Awareness
-- **Development Note:** The GPT models (especially long system prompts generating strict JSONs) can be expensive and slow. I implemented a robust caching layer using a cryptographic SHA-256 hash. If the input parameters `(campaign + creator)` haven't changed, the backend skips the OpenAI API and serves the cached `ai_brief` immediately.
-To ensure **Cost Awareness** with the LLM API, generation inputs are processed into a cryptographic SHA-256 hash. The `ai_briefs` table stores the `prompt_hash`, `response_json`, `model`, and an `error_count` tracking diagnostic metrics. If a specific Campaign + Creator pair hasn't changed its core properties within a 1-hour window, the API seamlessly returns cached JSON instead of repeatedly burning OpenAI tokens.
+The codebase follows strict **Clean Architecture** principles to separate routing, business logic, and data access.
+- **tRPC Routers** (`src/server/routers`): Handle API transport, input validation (Zod), and output formatting.
+- **Services/Core Logic** (`src/lib/scoring.ts`, `src/lib/briefGenerator.ts`): Pure, testable business logic for the ranking algorithm and LLM interactions.
+- **Repositories** (`src/server/repositories`): Isolated data access layers. No raw Supabase calls exist outside of the repository pattern, making it trivial to swap DB providers or mock for testing.
 
 ---
 
-## Scoring Engine Explanation (`src/lib/scoring.ts`)
+## 🚀 API Endpoints (tRPC Procedures)
+
+- `trpc.match.getTopCreators.query({ campaignId })`
+  Calculates dynamic suitability scores between a campaign and all available creators, sorts them by the deterministic scoring engine, and returns the top matches alongside their `scoreBreakdown`.
+- `trpc.brief.generateBrief.mutation({ campaignId, creatorId })`
+  Orchestrates the LLM prompt generation, checks the Supabase cache for an existing brief, and returns a strictly typed JSON object (Content Ideas, Hook Suggestions, Outreach Message) matching the `BriefSchema`.
+
+---
+
+## ⚖️ Trade-offs & Development Notes
+
+### Hybrid Columnar + JSONB Database Design
+For the database schema, I chose a pragmatic **hybrid approach** to store Creators and Campaigns rather than heavily normalizing every field:
+- **Trade-off:** By keeping queryable fields (e.g., `followers`, `engagement_rate`, `country`) as standard Postgres columns, we get fast database filtering. Deeply nested data (`audience distribution`, `last_posts`, `niches`) are kept as `JSONB`. This trades strict normalization for flexibility while preserving efficient query performance.
+
+### AI Brief Caching & Cost Awareness
+- **Development Note:** The GPT models (especially long system prompts generating strict JSONs) can be expensive and slow. I implemented a robust caching layer using a cryptographic SHA-256 hash. If the input parameters `(campaign + creator)` haven't changed, the backend skips the OpenAI API and serves the cached `ai_brief` immediately.
+
+---
+
+## 🛡️ Error Handling & Resiliency
+
+- **Strict I/O Validation (Zod):** Every API endpoint strictly validates both `input` and `output` schemas. If data is malformed at the edge, tRPC automatically throws a `TRPCError` (Bad Request).
+- **LLM Output Repair Loop:** AI models occasionally fail to strictly adhere to JSON schemas (e.g., returning text instead of arrays). If `Zod` parsing of the raw OpenAI response fails, the engine catches the error, pipes the exact Zod error message back into a "Repair Prompt", and forces the LLM to fix its own formatting before attempting to throw a 500 error.
+
+---
+
+## 🤖 Scoring Engine Explanation (`src/lib/scoring.ts`)
 
 The ranker computes a normalized total composite score (0-100) using a strict breakdown weighting formula.
 
@@ -38,16 +62,15 @@ The ranker computes a normalized total composite score (0-100) using a strict br
 
 The brief API accepts a `Campaign` and a targeted `Creator`, constructing a heavily personalized instruction context with rigid JSON formatting strings to map correctly to `BriefSchema`.
 
-**Generator Architecture & Resiliency:**
+**Generator Architecture:**
 1. **Cache Lookups First:** Checks Supabase `ai_briefs` matching the internal unique SHA-256 params hash.
 2. **Model Selection:** Defaults to `gpt-4o-mini` for high speed & low cost.
 3. **Structured Outputs:** Forces `response_format: { type: "json_object" }` alongside a strict example in the system prompt.
-4. **Retry & Repair Loop:** If Zod parsing of the raw JSON fails (malformed fields, missed arrays), the engine loops back and pings the LLM with a highly specific "Repair Prompt" feeding it the exact Zod errors and the malformed text. 
-5. **Model Fallbacks:** If the repair prompt fails after 1 retry, the engine promotes the context to the heavier, smarter `gpt-4o` layer as a last resort before failing.
+4. **Model Fallbacks:** If the repair prompt fails after 1 retry, the engine promotes the context to the heavier, smarter `gpt-4o` layer as a last resort before failing.
 
 ---
 
-##  Running the Platform Locally
+## 💻 Running the Platform Locally
 
 ### Prerequisites
 1. Node.js (v20+)
