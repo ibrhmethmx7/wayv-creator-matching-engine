@@ -6,7 +6,7 @@ This project uses a Next.js (App Router) + tRPC frontend and a Supabase (Postgre
 
 ---
 
-##  Trade-offs & Development Notes
+## 🏗 Trade-offs & Development Notes
 
 ### Hybrid Columnar + JSONB Approach
 For the database schema, I chose a pragmatic **hybrid approach** to store Creators and Campaigns rather than heavily normalizing every field:
@@ -34,7 +34,7 @@ The ranker computes a normalized total composite score (0-100) using a strict br
 
 ---
 
-##  AI Brief Generator (`src/lib/briefGenerator.ts`)
+## ⚡ AI Brief Generator (`src/lib/briefGenerator.ts`)
 
 The brief API accepts a `Campaign` and a targeted `Creator`, constructing a heavily personalized instruction context with rigid JSON formatting strings to map correctly to `BriefSchema`.
 
