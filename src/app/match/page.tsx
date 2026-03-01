@@ -2,16 +2,11 @@
 
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
-import { Play, Loader2, ArrowRight, ShieldAlert, Star } from "lucide-react";
+import { Play, Loader2, ArrowRight, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ScoreBreakdown } from "@/lib/schemas";
-
-const fmt = (n: number) =>
-  n >= 1_000_000 ? `${(n / 1_000_000).toFixed(1)}M` :
-    n >= 1_000 ? `${(n / 1_000).toFixed(0)}K` :
-      String(n);
 
 function BreakdownTooltip({ bd }: { bd: ScoreBreakdown }) {
   return (

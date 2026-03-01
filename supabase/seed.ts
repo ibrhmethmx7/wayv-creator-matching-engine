@@ -30,6 +30,36 @@ if (!fs.existsSync(campaignsPath) || !fs.existsSync(creatorsPath)) {
 const rawCampaigns = JSON.parse(fs.readFileSync(campaignsPath, "utf-8"));
 const rawCreators = JSON.parse(fs.readFileSync(creatorsPath, "utf-8"));
 
+type RawCampaign = {
+    id: string;
+    brand: string;
+    objective: string;
+    targetCountry: string;
+    targetGender: string;
+    targetAgeRange: string;
+    niches: string[];
+    preferredHookTypes: string[];
+    minAvgWatchTime: number;
+    budgetRange: { minFollowers: number; maxFollowers: number };
+    tone: string;
+    doNotUseWords: string[];
+};
+
+type RawCreator = {
+    id: string;
+    username: string;
+    country: string;
+    niches: string[];
+    followers: number;
+    engagementRate: number;
+    avgWatchTime: number;
+    contentStyle: string;
+    primaryHookType: string;
+    brandSafetyFlags: string[];
+    audience: unknown;
+    lastPosts: unknown[];
+};
+
 async function seed() {
     console.log("Seeding Database from Assessment JSONs...");
 
@@ -40,7 +70,7 @@ async function seed() {
 
     // Transform and Insert Campaigns
     // campaigns.json format: { id, brand, objective, targetCountry, targetGender, targetAgeRange, niches, preferredHookTypes, minAvgWatchTime, budgetRange: {minFollowers, maxFollowers}, tone, doNotUseWords }
-    const campaignsToInsert = rawCampaigns.map((c: any) => ({
+    const campaignsToInsert = (rawCampaigns as RawCampaign[]).map((c) => ({
         id: c.id,
         brand: c.brand,
         objective: c.objective,
@@ -65,7 +95,7 @@ async function seed() {
 
     // Transform and Insert Creators
     // creators.json format: { id, username, country, niches, followers, engagementRate, avgWatchTime, contentStyle, primaryHookType, brandSafetyFlags, audience: {}, lastPosts: [] }
-    const creatorsToInsert = rawCreators.map((c: any) => ({
+    const creatorsToInsert = (rawCreators as RawCreator[]).map((c) => ({
         id: c.id,
         username: c.username,
         country: c.country,

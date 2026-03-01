@@ -2,7 +2,6 @@ import crypto from "crypto";
 import { supabase } from "./supabase";
 import { BriefSchema, type Brief, type Campaign, type Creator } from "./schemas";
 import OpenAI from "openai";
-import { z } from "zod";
 
 const TTL_MS = 60 * 60 * 1000; // 1 hour cache per campaign+creator+model combo
 
@@ -111,6 +110,10 @@ async function callOpenAI(prompt: string, modelParam: "gpt-4o-mini" | "gpt-4o" =
     return res.choices[0]?.message.content ?? "";
 }
 
+function formatUnknownError(error: unknown): string {
+    return error instanceof Error ? error.message : String(error);
+}
+
 /**
  * Generates an AI Brief for a specific Campaign + Creator pair.
  * Incorporates: Cost awareness (cache), Schema Validation, Retry/Repair loop, and Model Fallbacks.
@@ -125,25 +128,30 @@ export async function generateBrief(campaign: Campaign, creator: Creator): Promi
 
     let raw = "";
     let errorCount = 0;
-    let parsed: { success: true; data: Brief } | { success: false; error: any } | null = null;
+    let parsed: ReturnType<typeof BriefSchema.safeParse> | null = null;
+    let lastError: unknown = null;
 
     // 2. Initial Call
     try {
         raw = await callOpenAI(makePrompt(campaign, creator), currentModel);
         parsed = BriefSchema.safeParse(JSON.parse(raw));
-    } catch (e: any) {
+        if (!parsed.success) lastError = parsed.error;
+    } catch (error: unknown) {
         errorCount++;
-        parsed = { success: false, error: e };
+        lastError = error;
     }
 
     // 3. Retry 1: Repair Prompt
     if (!parsed?.success) {
         errorCount++;
-        const errMsg = parsed && 'error' in parsed ? parsed.error.toString() : "Syntax Error";
+        const errMsg = lastError ? formatUnknownError(lastError) : "Syntax Error";
         try {
             raw = await callOpenAI(repairPrompt(raw, errMsg), currentModel);
             parsed = BriefSchema.safeParse(JSON.parse(raw));
-        } catch { /* ignored */ }
+            if (!parsed.success) lastError = parsed.error;
+        } catch (error: unknown) {
+            lastError = error;
+        }
     }
 
     // 4. Retry 2: Hard Block / Model Fallback to gpt-4o for complex reasoning structure issues
@@ -154,8 +162,11 @@ export async function generateBrief(campaign: Campaign, creator: Creator): Promi
         try {
             raw = await callOpenAI(hardPrompt, currentModel);
             parsed = BriefSchema.safeParse(JSON.parse(raw));
-        } catch (e: any) {
-            throw new Error(`Brief generation critically failed after 2 retries and model fallback. Last Error: ${e.message}`);
+            if (!parsed.success) {
+                throw new Error(`Brief generation critically failed after 2 retries and model fallback. Last Error: ${parsed.error.message}`);
+            }
+        } catch (error: unknown) {
+            throw new Error(`Brief generation critically failed after 2 retries and model fallback. Last Error: ${formatUnknownError(error)}`);
         }
     }
 

@@ -29,7 +29,7 @@ export const matchRouter = router({
             const creators = await creatorRepository.findAll();
 
             // Calculate score for all creators and filter out Hard Rejects (negative infinity)
-            let scored = creators.map((creator) => calculateMatchScore(campaign, creator));
+            const scored = creators.map((creator) => calculateMatchScore(campaign, creator));
 
             // Tie-break strategy: Total Score DESC, Engagement Rate DESC, Follower DESC
             scored.sort((a, b) => {

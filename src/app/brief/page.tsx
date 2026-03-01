@@ -2,9 +2,7 @@
 
 import { trpc } from "@/lib/trpc";
 import { useState } from "react";
-import { Play, Loader2, Link as LinkIcon, RefreshCw, AlertCircle, Sparkles } from "lucide-react";
-import Link from "next/link";
-import { Badge } from "@/components/ui/badge";
+import { Play, Loader2, AlertCircle, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 import { cn } from "@/lib/utils";
@@ -26,7 +24,7 @@ function BriefCard({ brief }: { brief: Brief }) {
         </CardHeader>
         <CardContent>
           <p className="text-[var(--text)] whitespace-pre-wrap leading-relaxed italic">
-            "{brief.outreachMessage}"
+            &quot;{brief.outreachMessage}&quot;
           </p>
         </CardContent>
       </Card>
@@ -60,7 +58,7 @@ function BriefCard({ brief }: { brief: Brief }) {
             <div className="space-y-3">
               {brief.hookSuggestions?.map((hook, i) => (
                 <div key={i} className="rounded-lg border border-[var(--line-soft)] bg-[var(--surface-2)] p-3 text-sm text-[var(--text-dim)] italic">
-                  "{hook}"
+                  &quot;{hook}&quot;
                 </div>
               ))}
             </div>
@@ -158,10 +156,6 @@ export default function BriefPage() {
         </div>
       )}
 
-      {/* Helper notice */}
-      <p className="text-xs text-center text-[var(--text-faint)] italic">
-        Repeated requests for the exact same Campaign + Creator pair are returned instantly from Cache.
-      </p>
     </div>
   );
 }

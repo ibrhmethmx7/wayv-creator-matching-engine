@@ -14,7 +14,7 @@ export const briefRouter = router({
             id: z.string(),
             campaign_id: z.string(),
             creator_id: z.string().nullable(),
-            brief: z.any(),
+            brief: z.unknown(),
             created_at: z.string()
         })))
         .query(async () => {
@@ -23,7 +23,14 @@ export const briefRouter = router({
                 .select("*")
                 .order("created_at", { ascending: false })
                 .limit(20);
-            return (data ?? []).map((row: any) => ({
+            const rows = (data ?? []) as Array<{
+                id: string;
+                campaign_id: string;
+                creator_id: string | null;
+                response_json: unknown;
+                created_at: string;
+            }>;
+            return rows.map((row) => ({
                 id: row.id,
                 campaign_id: row.campaign_id,
                 creator_id: row.creator_id,
@@ -51,11 +58,12 @@ export const briefRouter = router({
             try {
                 const result = await generateBrief(campaign, creator);
                 return result;
-            } catch (error: any) {
+            } catch (error: unknown) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
                 console.error("[BriefGen failed]", error);
                 throw new TRPCError({
                     code: "INTERNAL_SERVER_ERROR",
-                    message: `Failed to generate brief: ${error.message}`
+                    message: `Failed to generate brief: ${errorMessage}`
                 });
             }
         })

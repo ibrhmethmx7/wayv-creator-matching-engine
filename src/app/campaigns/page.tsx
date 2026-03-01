@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { FileText, Plus, Zap, Archive, CheckCircle, Trash2 } from "lucide-react";
+import { FileText, Plus, Zap, Trash2 } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";

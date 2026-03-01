@@ -3,7 +3,7 @@
 import { trpc } from "@/lib/trpc";
 import Link from "next/link";
 import { use } from "react";
-import { ArrowLeft, Zap, FileText, TrendingUp, Eye, ThumbsUp, MessageCircle, Calendar } from "lucide-react";
+import { ArrowLeft, Zap, FileText } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
@@ -17,14 +17,12 @@ const ER_TIER = (er: number) =>
         er >= 3 ? { label: "✓ Good", cls: "badge-brand" } :
             { label: "~Low", cls: "badge" };
 
-function timeAgo(iso: string) {
-    const days = Math.floor((Date.now() - new Date(iso).getTime()) / 86_400_000);
-    if (days === 0) return "Today";
-    if (days === 1) return "Yesterday";
-    if (days < 30) return `${days}d ago`;
-    if (days < 365) return `${Math.floor(days / 30)}mo ago`;
-    return `${Math.floor(days / 365)}y ago`;
-}
+const formatSafetyFlag = (flag: string): string =>
+    flag
+        .split("_")
+        .filter(Boolean)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
 
 
 export default function CreatorDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -101,7 +99,11 @@ export default function CreatorDetailPage({ params }: { params: Promise<{ id: st
                 <Card>
                     <CardHeader><CardTitle className="text-red-500 flex items-center gap-2"><ArrowLeft size={16} /> Brand Safety Flags</CardTitle></CardHeader>
                     <CardContent className="flex flex-wrap gap-2">
-                        {creator.brand_safety_flags.map((l) => <span key={l} className="badge bg-red-500/10 text-red-500 border-red-500/20">{l}</span>)}
+                        {creator.brand_safety_flags.map((l) => (
+                            <span key={l} className="badge bg-red-500/10 text-red-500 border-red-500/20">
+                                {formatSafetyFlag(l)}
+                            </span>
+                        ))}
                     </CardContent>
                 </Card>
             )}
