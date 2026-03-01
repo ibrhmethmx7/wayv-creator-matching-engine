@@ -1,12 +1,12 @@
 ﻿"use client";
 
 import { trpc } from "@/lib/trpc";
-import { useState } from "react";
 import { Play, Loader2, ArrowRight, ShieldAlert } from "lucide-react";
 import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ScoreBreakdown } from "@/lib/schemas";
+import { useSelectionContext } from "@/context/SelectionContext";
 
 function BreakdownTooltip({ bd }: { bd: ScoreBreakdown }) {
   return (
@@ -27,19 +27,19 @@ function BreakdownTooltip({ bd }: { bd: ScoreBreakdown }) {
 }
 
 export default function MatchPage() {
-  const [selectedCampaign, setSelectedCampaign] = useState<string>("");
+  const { selectedCampaignId, setSelectedCampaignId } = useSelectionContext();
 
   const { data: campaigns } = trpc.campaign.list.useQuery();
   const { data: creatorsObj } = trpc.creator.list.useQuery();
   const creatorsMap = new Map(creatorsObj?.map(c => [c.id, c]));
 
   const matchQuery = trpc.match.getTopCreators.useQuery(
-    { campaignId: selectedCampaign, limit: 20 },
+    { campaignId: selectedCampaignId, limit: 20 },
     { enabled: false }
   );
 
   const handleRun = () => {
-    if (!selectedCampaign) return;
+    if (!selectedCampaignId) return;
     matchQuery.refetch();
   };
 
@@ -55,8 +55,8 @@ export default function MatchPage() {
       <div className="flex flex-col gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4 sm:flex-row sm:items-center">
         <select
           className="flex-1 rounded-lg border border-[var(--line-soft)] bg-[var(--surface-2)] px-3 py-2 text-sm outline-none focus:border-[var(--brand)]"
-          value={selectedCampaign}
-          onChange={(e) => setSelectedCampaign(e.target.value)}
+          value={selectedCampaignId}
+          onChange={(e) => setSelectedCampaignId(e.target.value)}
         >
           <option value="" disabled>Select a campaign to match...</option>
           {campaigns?.map((c) => (
@@ -68,7 +68,7 @@ export default function MatchPage() {
 
         <button
           onClick={handleRun}
-          disabled={!selectedCampaign || matchQuery.isFetching}
+          disabled={!selectedCampaignId || matchQuery.isFetching}
           className="btn-primary flex items-center justify-center gap-2"
         >
           {matchQuery.isFetching ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} />}

@@ -2,7 +2,7 @@
 
 An AI-powered influencer marketing platform built as part of the Wayv technical assessment, focused on creator discovery, campaign matching, and intelligent brief generation.
 
-This project uses a Next.js (App Router) + tRPC frontend and a Supabase (Postgres) backend to power a clean, robust, and explainable creator matching engine and OpenAI-assisted brief generator.
+This project uses a Next.js (App Router) frontend with tRPC + React Query + React Context, and a Supabase (Postgres) backend to power a clean, robust, and explainable creator matching engine and OpenAI-assisted brief generator.
 
 ---
 
@@ -12,6 +12,7 @@ The codebase follows strict **Clean Architecture** principles to separate routin
 - **tRPC Routers** (`src/server/routers`): Handle API transport, input validation (Zod), and output formatting.
 - **Services/Core Logic** (`src/lib/scoring.ts`, `src/lib/briefGenerator.ts`): Pure, testable business logic for the ranking algorithm and LLM interactions.
 - **Repositories** (`src/server/repositories`): Isolated data access layers. No raw Supabase calls exist outside of the repository pattern, making it trivial to swap DB providers or mock for testing.
+- **UI State Layer (React Context)** (`src/context/SelectionContext.tsx`): Stores selected campaign/creator IDs shared across the Match and Brief pages.
 
 ---
 
@@ -19,7 +20,7 @@ The codebase follows strict **Clean Architecture** principles to separate routin
 
 - `trpc.match.getTopCreators.query({ campaignId })`
   Calculates dynamic suitability scores between a campaign and all available creators, sorts them by the deterministic scoring engine, and returns the top matches alongside their `scoreBreakdown`.
-- `trpc.brief.generateBrief.mutation({ campaignId, creatorId })`
+- `trpc.brief.generate.mutation({ campaignId, creatorId })`
   Orchestrates the LLM prompt generation, checks the Supabase cache for an existing brief, and returns a strictly typed JSON object (Content Ideas, Hook Suggestions, Outreach Message) matching the `BriefSchema`.
 
 ---
@@ -99,3 +100,5 @@ OPENAI_API_KEY=YOUR_OPENAI_KEY
    `npm run dev`
 
 Visit `http://localhost:3000` to interact with the Dashboard, Creator Roster, Matching Engine, and AI Brief tool!
+
+

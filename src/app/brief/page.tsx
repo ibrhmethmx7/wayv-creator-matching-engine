@@ -1,12 +1,12 @@
 ﻿"use client";
 
 import { trpc } from "@/lib/trpc";
-import { useState } from "react";
 import { Play, Loader2, AlertCircle, Sparkles } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 import { cn } from "@/lib/utils";
 import type { Brief } from "@/lib/schemas";
+import { useSelectionContext } from "@/context/SelectionContext";
 
 function BriefCard({ brief }: { brief: Brief }) {
   if (!brief) return null;
@@ -70,8 +70,12 @@ function BriefCard({ brief }: { brief: Brief }) {
 }
 
 export default function BriefPage() {
-  const [selectedCampaign, setSelectedCampaign] = useState<string>("");
-  const [selectedCreator, setSelectedCreator] = useState<string>("");
+  const {
+    selectedCampaignId,
+    selectedCreatorId,
+    setSelectedCampaignId,
+    setSelectedCreatorId,
+  } = useSelectionContext();
 
   // Using TRPC data
   const { data: campaigns } = trpc.campaign.list.useQuery();
@@ -80,8 +84,8 @@ export default function BriefPage() {
   const generateMut = trpc.brief.generate.useMutation();
 
   const handleGenerate = () => {
-    if (!selectedCampaign || !selectedCreator) return;
-    generateMut.mutate({ campaignId: selectedCampaign, creatorId: selectedCreator });
+    if (!selectedCampaignId || !selectedCreatorId) return;
+    generateMut.mutate({ campaignId: selectedCampaignId, creatorId: selectedCreatorId });
   };
 
   return (
@@ -100,8 +104,8 @@ export default function BriefPage() {
               <label className="text-sm font-semibold">1. Select Campaign</label>
               <select
                 className="flex h-11 w-full rounded-md border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                value={selectedCampaign}
-                onChange={(e) => setSelectedCampaign(e.target.value)}
+                value={selectedCampaignId}
+                onChange={(e) => setSelectedCampaignId(e.target.value)}
               >
                 <option value="" disabled>Choose campaign...</option>
                 {campaigns?.map(c => (
@@ -114,8 +118,8 @@ export default function BriefPage() {
               <label className="text-sm font-semibold">2. Select Targeted Creator</label>
               <select
                 className="flex h-11 w-full rounded-md border border-[var(--line)] bg-[var(--surface)] px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-[var(--brand)] focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                value={selectedCreator}
-                onChange={(e) => setSelectedCreator(e.target.value)}
+                value={selectedCreatorId}
+                onChange={(e) => setSelectedCreatorId(e.target.value)}
               >
                 <option value="" disabled>Choose creator...</option>
                 {creators?.map(c => (
@@ -128,10 +132,10 @@ export default function BriefPage() {
 
             <button
               onClick={handleGenerate}
-              disabled={!selectedCampaign || !selectedCreator || generateMut.isPending}
+              disabled={!selectedCampaignId || !selectedCreatorId || generateMut.isPending}
               className={cn(
                 "btn flex h-11 items-center justify-center gap-2 px-6",
-                (!selectedCampaign || !selectedCreator) && "opacity-50 cursor-not-allowed",
+                (!selectedCampaignId || !selectedCreatorId) && "opacity-50 cursor-not-allowed",
                 generateMut.isPending ? "btn-secondary" : "btn-primary"
               )}
             >
