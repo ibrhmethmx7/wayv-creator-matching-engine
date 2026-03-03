@@ -8,7 +8,7 @@ export const campaignRepository = {
     async create(input: CreateCampaignInput): Promise<Campaign> {
         const { data, error } = await supabase()
             .from("campaigns")
-            .insert(input)
+            .insert({ ...input, id: crypto.randomUUID() })
             .select()
             .single();
         if (error) throw new Error(`[CampaignRepository.create] ${error.message}`);
